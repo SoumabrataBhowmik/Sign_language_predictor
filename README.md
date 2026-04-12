@@ -28,6 +28,10 @@ Fused Feature Vector: A 2,816-dimensional vector (f_fused) formed via concatenat
 
 Classification Head: Three linear layers (2816 → 1024 → 512 → 29) with ReLU activations and Dropout(0.6) for regularization.
 
+<p align="center">
+  <img src="Architecture_Diagram.png" width="600" title="FusionASLModel Architecture">
+</p>
+
 **Dataset**
 
 The model was trained using the ASL Alphabet Dataset [3], which contains 87,000 balanced images.
