@@ -70,12 +70,17 @@ Training Summary
 Clone the Repository:
 
 Bash
+
 git clone https://github.com/SoumabrataBhowmik/Sign_language_predictor.git
+
 cd Sign_language_predictor
+
 Environment Setup:
+
 Ensure you have Python installed with the necessary libraries: torch, torchvision, timm, matplotlib, and PIL.
 
 Run the Notebook:
+
 Open Sign_Language_Prediction_Val & Test_f1-Score_1.000_final.ipynb in Jupyter or Google Colab to see the full implementation, training logs, and evaluations.
 
 **References**
