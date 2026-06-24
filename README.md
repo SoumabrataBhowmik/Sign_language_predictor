@@ -90,3 +90,57 @@ Open Sign_Language_Prediction_Val & Test_f1-Score_1.000_final.ipynb in Jupyter o
 [2] Dosovitskiy, A., et al. (2021). An Image Is Worth 16x16 Words: Transformers for Image Recognition at Scale. ICLR. 
 
 [3] ASL Alphabet Dataset. Kaggle.
+
+
+## Model Architecture
+
+The architecture utilizes a dual-backbone fusion approach, processing the input through a Convolutional Neural Network (CNN) and a Vision Transformer (ViT) in parallel before concatenating their feature maps for the final classification.
+
+```mermaid
+flowchart TD
+    %% Node Styling
+    classDef inputNode fill:#3498db,stroke:#2980b9,stroke-width:2px,color:#fff;
+    classDef prepNode fill:#9b59b6,stroke:#8e44ad,stroke-width:2px,color:#fff;
+    classDef backboneNode fill:#c0392b,stroke:#a93226,stroke-width:2px,color:#fff;
+    classDef featureNode fill:#e74c3c,stroke:#c0392b,stroke-width:2px,color:#fff;
+    classDef fusionNode fill:#e67e22,stroke:#d35400,stroke-width:2px,color:#fff;
+    classDef fusedFeatNode fill:#a04000,stroke:#873600,stroke-width:2px,color:#fff;
+    classDef denseNode fill:#ecf0f1,stroke:#bdc3c7,stroke-width:2px,color:#2c3e50;
+    classDef outputNode fill:#2ecc71,stroke:#27ae60,stroke-width:2px,color:#fff;
+
+    %% Workflow
+    Input["Input Image<br>(RGB)"]:::inputNode --> Prep["Preprocessing / Transformation<br>(Resize 224x224, Normalization)"]:::prepNode
+    
+    Prep -->|Transformed Image| CNN_Stream
+    Prep -->|Transformed Image| ViT_Stream
+
+    %% CNN Stream Branch
+    subgraph CNN_Stream ["CNN Stream"]
+        direction TB
+        EffNet["EfficientNetB5 Backbone<br>(Frozen except last 2 blocks)"]:::backboneNode
+        CNN_Feat["CNN Features<br>(f_CNN, Dim: 2048)"]:::featureNode
+        EffNet --> CNN_Feat
+    end
+
+    %% ViT Stream Branch
+    subgraph ViT_Stream ["ViT Stream"]
+        direction TB
+        ViT["ViT-Base/Patch16 Backbone<br>(Frozen except last 2 blocks)"]:::backboneNode
+        ViT_Feat["ViT Features<br>(f_ViT, Dim: 768)"]:::featureNode
+        ViT --> ViT_Feat
+    end
+
+    %% Fusion and Classification
+    CNN_Feat -->|Concatenation| Concat{"Concatenation"}
+    ViT_Feat -->|Concatenation| Concat
+
+    Concat --> FusionHead["Fusion & Classification Head"]:::fusionNode
+
+    subgraph Classification_Head ["Classification Head"]
+        direction TB
+        FusionHead --> FusedFeat["Fused Features<br>(f_fused, Dim: 2816)"]:::fusedFeatNode
+        FusedFeat --> Dense1["Linear (2816 -> 1024)<br>ReLU, Dropout(0.6)"]:::denseNode
+        Dense1 --> Dense2["Linear (1024 -> 512)<br>ReLU, Dropout(0.6)"]:::denseNode
+        Dense2 --> Dense3["Linear (512 -> 29)"]:::denseNode
+        Dense3 --> Output["29 Output Classes<br>(A-Z, Nothing, Space)"]:::outputNode
+    end
